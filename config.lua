@@ -3,7 +3,7 @@ lvim.log.level = "warn"
 lvim.format_on_save.enabled = true
 lvim.colorscheme = "lunar"
 -- to disable icons and use a minimalist setup, uncomment the following
-lvim.use_icons = false
+lvim.use_icons = true
 
 -- if you don't want all the parsers change this to a table of the ones you want
 lvim.builtin.treesitter.ensure_installed = {
@@ -81,9 +81,20 @@ lvim.builtin.which_key.mappings["p"] = {
 
 lvim.builtin.which_key.mappings["u"] = { "<cmd>UndotreeToggle<CR>", "Toggle Undo Tree" }
 
+-- snippet
+function _G.calculate_csharp_namespace()
+  local path = vim.fn.expand("%:p:h")
+  local project_root = "path/to/your/project" -- Adjust this to your project's root
+  local path_relative = path:sub(#project_root + 2)
+  local namespace = path_relative:gsub("[/\\]", ".")
+  return namespace
+end
 
--- Settings
---
---
---
-----
+local ls = require('luasnip')
+
+ls.snippets = {
+  csharp = {
+    -- Namespace snippet
+    ls.parser.parse_snippet("nsp", "namespace " .. _G.calculate_csharp_namespace() .. "\n{\n    $0\n}")
+  },
+}
