@@ -33,7 +33,71 @@ lvim.plugins = {
   'jose-elias-alvarez/null-ls.nvim',
   'jparise/vim-graphql',
   'kdheepak/lazygit.nvim',
+  'onsails/lspkind-nvim',
+  {
+    "supermaven-inc/supermaven-nvim",
+    config = function()
+      require("supermaven-nvim").setup({
+        keymaps = {
+          accept_suggestion = "<Tab>",
+          clear_suggestion = "<C-]>",
+          accept_word = "<C-j>",
+        },
+        ignore_filetypes = { "cpp" }, -- Ignore Supermaven in C++ files
+        color = {
+          suggestion_color = "#A9A9A9",
+          cterm = 244,
+        },
+        log_level = "info",                -- Set to "off" to disable logging
+        disable_inline_completion = false, -- For use with nvim-cmp
+        disable_keymaps = true,            -- Set to true if you want to define your own keymaps
+        condition = function()
+          return false                     -- Return true to disable Supermaven under certain conditions
+        end,
+      })
+    end,
+  },
 }
+-- Add Supermaven to cmp sources
+table.insert(lvim.builtin.cmp.sources, { name = "supermaven" })
+
+
+-- Custom function to accept Supermaven suggestion with Ctrl + b
+function _G.supermaven_accept_suggestion()
+  local suggestion = require('supermaven-nvim.completion_preview')
+  if suggestion and suggestion.has_suggestion and suggestion.has_suggestion() then
+    vim.schedule(function()
+      suggestion.on_accept_suggestion()
+    end)
+    return ''
+  else
+    return '<C-b>' -- Or '' if you prefer no action
+  end
+end
+
+-- Map Ctrl + b in insert mode to accept Supermaven suggestion
+vim.api.nvim_set_keymap('i', '<C-b>', 'v:lua.supermaven_accept_suggestion()', { expr = true, noremap = true })
+
+
+local lspkind = require("lspkind")
+lspkind.init({
+  symbol_map = {
+    Supermaven = "",
+  },
+})
+
+-- Set the highlight color for Supermaven suggestions
+vim.api.nvim_set_hl(0, "CmpItemKindSupermaven", { fg = "#6CC644" })
+
+-- Define custom key mappings for Supermaven
+local opts = { expr = true, noremap = true }
+
+-- Accept suggestion
+vim.api.nvim_set_keymap('i', '<C-l>', 'supermaven#Accept("<C-l>")', opts)
+
+-- Clear suggestion
+vim.api.nvim_set_keymap('i', '<C-h>', 'supermaven#Dismiss()', opts)
+
 
 -- Key Mappings for Navigation
 lvim.keys.normal_mode = {
@@ -44,6 +108,9 @@ lvim.keys.normal_mode = {
   ["<leader>sn"] = "]s",                                                    -- Jump to the next spell error
   ["<leader>sp"] = "[s",                                                    -- Jump to the previous spell error
   ["<leader>gg"] = "<cmd>LazyGit<CR>",
+  ["J"] = "}",                                                              -- Jump down a block
+  ["<C-j>"] = "}",                                                          -- Jump down a block with Ctrl+j
+  ["<C-k>"] = "{",
 }
 
 vim.api.nvim_create_user_command('CommentToggle', function()
