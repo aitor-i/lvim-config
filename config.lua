@@ -6,6 +6,14 @@ lvim.use_icons = true
 vim.opt.relativenumber = true
 vim.opt.number = true
 
+-- Customize SpellBad highlight group to have a blue undercurl
+vim.cmd([[
+  augroup SpellBadHighlight
+    autocmd!
+    autocmd ColorScheme * highlight clear SpellBad | highlight SpellBad gui=undercurl guisp=#0000FF guifg=NONE guibg=NONE
+  augroup END
+]])
+
 local formatters = require "lvim.lsp.null-ls.formatters"
 formatters.setup {
   {
@@ -57,6 +65,18 @@ lvim.plugins = {
       })
     end,
   },
+  {
+    'f-person/git-blame.nvim',
+    config = function()
+      vim.g.gitblame_enabled = 0 -- Start with git blame disabled
+    end,
+  },
+  {
+    "editorconfig/editorconfig-vim",
+    config = function()
+      -- No additional configuration is necessary
+    end,
+  },
 }
 -- Add Supermaven to cmp sources
 table.insert(lvim.builtin.cmp.sources, { name = "supermaven" })
@@ -98,6 +118,10 @@ vim.api.nvim_set_keymap('i', '<C-l>', 'supermaven#Accept("<C-l>")', opts)
 -- Clear suggestion
 vim.api.nvim_set_keymap('i', '<C-h>', 'supermaven#Dismiss()', opts)
 
+-- Key mapping to toggle git-blame.nvim
+lvim.builtin.which_key.mappings["gb"] = {
+  "<cmd>GitBlameToggle<CR>", "Toggle Git Blame"
+}
 
 -- Key Mappings for Navigation
 lvim.keys.normal_mode = {
@@ -111,7 +135,14 @@ lvim.keys.normal_mode = {
   ["J"] = "}",                                                              -- Jump down a block
   ["<C-j>"] = "}",                                                          -- Jump down a block with Ctrl+j
   ["<C-k>"] = "{",
+  ["r"] = "<cmd>lua vim.diagnostic.goto_next()<CR>",                        -- Jump to the next LSP error
+  ["R"] = "<cmd>lua vim.diagnostic.goto_prev()<CR>",                        -- Jump to the previous LSP error
+  ["<leader>gb"] = "<cmd>GitBlameToggle<CR>",                               -- Toggle Git Blame
 }
+
+
+vim.g.gitblame_message_template = '<author> • <date> • <summary>'
+
 
 vim.api.nvim_create_user_command('CommentToggle', function()
   local cs = vim.bo.commentstring:gsub('%%s', ''):gsub(' ', '') -- Clean comment string
@@ -186,6 +217,7 @@ lvim.builtin.which_key.mappings = {
   k = { "<cmd>CommentToggle<CR>", "Toggle Comment" }
 }
 lvim.keys.visual_mode["<leader>k"] = ":<C-U>CommentToggle<CR>"
+
 -- Spell-Checking Configurations
 vim.opt.spell = true
 vim.opt.spelllang = { "en_us" }
