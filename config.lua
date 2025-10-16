@@ -192,6 +192,16 @@ vim.api.nvim_create_user_command('CommentToggle', function()
   end
 end, {})
 
+-- Finder that shows EVERYTHING (even .gitignored)
+_G.find_all_files = function()
+  require("telescope.builtin").find_files({
+    prompt_title = "All files (incl. .gitignored)",
+    hidden = true,
+    no_ignore = true,
+    follow = true,
+  })
+end
+
 -- Which Key Mappings
 lvim.builtin.which_key.mappings = {
   a = { "<cmd>lua require('harpoon.mark').add_file()<CR>", "Add to Harpoon" },
@@ -210,6 +220,7 @@ lvim.builtin.which_key.mappings = {
     s = { "z=", "Suggest Spelling" }
   },
   P = { "<cmd>lua require('telescope.builtin').grep_string({ search = vim.fn.input('Grep For > ') })<CR>", "Grep Finding" },
+  F = { "<cmd>lua find_all_files()<CR>", "Find All Files" },
   g = {
     g = { "<cmd>LazyGit<CR>" }
   },
@@ -284,3 +295,20 @@ vim.api.nvim_create_autocmd("BufNewFile,BufRead", {
 
 -- Set GraphQL JavaScript/TypeScript Tag Names
 vim.g.graphql_javascript_tags = { "gql", "graphql", "Relay.QL" }
+
+local lspconfig = require("lspconfig")
+
+lspconfig.intelephense.setup({
+  settings = {
+    intelephense = {
+      stubs = {
+        "wordpress", "php", "core", "curl", "json", "mysqli", "pdo", "xml"
+      },
+      environment = {
+        includePaths = {
+          vim.fn.expand("~/Developer/learn/wordpress/wp-first/.stubs/wordpress")
+        }
+      }
+    }
+  }
+})
